@@ -17,8 +17,12 @@ int step(COMPUTER* comp, int steps){
       return 1;
     }
     instrc = comp->program[comp->ip];
+    comp->ip++;
+
+    int32_t imm;
     REGISTER a, b, reta, retb;
     uint64_t status;
+
 
     /*
       TODO: Handle signs a bit better
@@ -118,10 +122,45 @@ int step(COMPUTER* comp, int steps){
 
 
 
+      case OP_LOD :{
+        if(a.u64 >= comp->ramsize){
+          return 3;
+        }
+        reta.u64 = ((uint64_t*)comp->ram)[a.u64];
+      }break;
 
+      case OP_STR :{
+        if(a.u64 >= comp->ramsize){
+          return 3;
+        }
+        ((uint64_t*)comp->ram)[a.u64] = b.u64;
+      }
+
+
+
+      case OP_B   :{
+        if(a.u64){
+          comp->ip += (imm - 1);
+          if      (comp->ip < 0){
+            return 4;
+          }else if(comp->ip >= comp->programsize){
+            return 4;
+          }
+        }
+      }break;
+
+      case OP_JMP  :{
+        comp->ip += (imm - 1);
+        if      (comp->ip < 0){
+          return 4;
+        }else if(comp->ip >= comp->programsize){
+          return 4;
+        }
+      }break;
 
     }
 
-
   }
+
+  return 0;
 }
